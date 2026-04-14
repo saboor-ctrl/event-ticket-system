@@ -9,9 +9,16 @@ function sts_render_ticket_form() {
     $remaining_seats = [];
 
     foreach ($screenings as $key => $data) {
-        $screening_info[$key] = $data['name'] . "<br>Date: " . $data['date'] . "<br>Location: " . $data['location'];
-        $remaining_seats[$key] = get_option("remaining_seats_$key", 200);
+    $screening_info[$key] = $data['name'] . "<br>Date: " . $data['date'] . "<br>Location: " . $data['location'];
+
+    $seats = get_option("remaining_seats_$key");
+
+    if ($seats === false) {
+        $seats = 200;
     }
+
+    $remaining_seats[$key] = (int) $seats;
+}
 
     ob_start();
     ?>

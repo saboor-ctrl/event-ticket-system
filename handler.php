@@ -20,44 +20,92 @@ function sts_handle_ticket_submission() {
 
     $remaining = get_option("remaining_seats_$screening", 200);
 
+    // Handle reserved tickets
     if ($type === 'reserved') {
+
         if ($remaining <= 0) {
-            echo "<p>Sold Out</p>";
+            echo "<p style='text-align:center;'>❌ Sold Out</p>";
             return;
         }
 
         if ($tickets > $remaining) {
-            echo "<p>Not enough seats available</p>";
+            echo "<p style='text-align:center;'>❌ Not enough seats available</p>";
             return;
         }
 
         update_option("remaining_seats_$screening", $remaining - $tickets);
     }
 
+    // Email headers (for HTML emails)
+    $headers = ['Content-Type: text/html; charset=UTF-8'];
+
     // Email content
     if ($type === "reserved") {
-        $subject = "Your Tickets Have Been Reserved";
-        $message = "Hi $first $last,
 
-You have reserved $tickets ticket(s) for:
-{$data['name']}
-{$data['date']}
-{$data['location']}
+        // ✅ UPDATED SUBJECT (Reserved)
+        $subject = "Your Reserved Seat is Confirmed – " . $data['name'];
 
-Show this email at entry.";
+        $message = "
+        <div style='font-family: Arial; max-width: 600px; margin: auto;'>
+            <h2>Your Tickets Are Reserved 🎉</h2>
+
+            <p>Hi <strong>$first $last</strong>,</p>
+
+            <p>Thank you for reserving your ticket(s)! Here are your details:</p>
+
+            <div style='background:#f5f5f5; padding:15px; border-radius:8px;'>
+                <p><strong>🎬 Screening:</strong> {$data['name']}</p>
+                <p><strong>📅 Date:</strong> {$data['date']}</p>
+                <p><strong>📍 Location:</strong> {$data['location']}</p>
+                <p><strong>🎟️ Tickets:</strong> $tickets</p>
+            </div>
+
+            <p style='margin-top:15px;'>
+                Please bring this email as proof of reservation when you arrive.
+            </p>
+
+            <p>We look forward to seeing you!</p>
+
+            <hr>
+            <p style='font-size:12px; color:gray;'>Toronto Horror Film Festival</p>
+        </div>
+        ";
+
     } else {
-        $subject = "FCFS Ticket Info";
-        $message = "Hi $first $last,
 
-You signed up for $tickets ticket(s) for:
-{$data['name']}
-{$data['date']}
-{$data['location']}
+        // ✅ UPDATED SUBJECT (FCFS)
+        $subject = "You're Registered (FCFS – Arrive Early) – " . $data['name'];
 
-Seats are first come, first serve.";
+        $message = "
+        <div style='font-family: Arial; max-width: 600px; margin: auto;'>
+            <h2>You're Signed Up! 👻</h2>
+
+            <p>Hi <strong>$first $last</strong>,</p>
+
+            <p>You’ve successfully signed up for the following screening:</p>
+
+            <div style='background:#f5f5f5; padding:15px; border-radius:8px;'>
+                <p><strong>🎬 Screening:</strong> {$data['name']}</p>
+                <p><strong>📅 Date:</strong> {$data['date']}</p>
+                <p><strong>📍 Location:</strong> {$data['location']}</p>
+                <p><strong>🎟️ Tickets:</strong> $tickets</p>
+            </div>
+
+            <p style='margin-top:15px;'>
+                ⚠️ Seating is <strong>first come, first serve</strong> and not guaranteed.
+                Please arrive early to secure your spot.
+            </p>
+
+            <p>See you there!</p>
+
+            <hr>
+            <p style='font-size:12px; color:gray;'>Toronto Horror Film Festival</p>
+        </div>
+        ";
     }
 
-    wp_mail($email, $subject, $message);
+    // Send email
+    wp_mail($email, $subject, $message, $headers);
 
-    echo "<p style='text-align:center;'>Success! Check your email.</p>";
+    echo "<p style='text-align:center;'>✅ Success! Check your email.</p>";
 }

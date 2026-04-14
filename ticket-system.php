@@ -10,7 +10,7 @@ require_once plugin_dir_path(__FILE__) . 'screenings.php';
 require_once plugin_dir_path(__FILE__) . 'form.php';
 require_once plugin_dir_path(__FILE__) . 'handler.php';
 
-// Set default seats ONCE
+// Set default seats ONLY once on plugin activation
 function sts_set_default_seats() {
     $screenings = sts_get_screenings();
 
@@ -20,7 +20,7 @@ function sts_set_default_seats() {
         }
     }
 }
-add_action('init', 'sts_set_default_seats');
+register_activation_hook(__FILE__, 'sts_set_default_seats');
 
 // Register shortcode
 add_shortcode('ticket_form', 'sts_render_ticket_form');
