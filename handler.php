@@ -1,5 +1,8 @@
 <?php
 
+// Debug flag
+define('STS_DEBUG', true);
+
 // Google Sheets Configuration
 define('STS_CREDENTIALS_FILE', 'toronto-horror-film-festival-01544b154a0a.json');
 define('STS_SHEET_ID', '15uzyGEO4gvpPwg9alFY_5p06o0McJ6Z1gCcJ3sb8yTI');
@@ -122,25 +125,48 @@ function sts_handle_ticket_submission() {
  * Log ticket submission to Google Sheets
  */
 function sts_log_to_sheets($first_name, $last_name, $email, $screening_name, $screening_date, $ticket_type, $num_tickets, $reference_number) {
+    if (STS_DEBUG) {
+        echo '<pre style="background:#f0f0f0; padding:15px; border:1px solid #ccc; margin:15px 0; font-family:monospace; white-space:pre-wrap;">';
+        echo "<strong>STS Debug Output:</strong>\n";
+    }
+    
     // Get the plugin/theme directory
     $base_dir = dirname(__FILE__);
     $credentials_path = $base_dir . '/' . STS_CREDENTIALS_FILE;
     
+    if (STS_DEBUG) {
+        echo "Credentials path: $credentials_path\n";
+    }
+    
     // Check if credentials file exists
     if (!file_exists($credentials_path)) {
+        if (STS_DEBUG) {
+            echo "❌ File NOT found\n";
+            echo '</pre>';
+        }
         error_log('STS: Google Sheets credentials file not found at ' . $credentials_path);
         return;
+    }
+    
+    if (STS_DEBUG) {
+        echo "✓ File found\n";
     }
     
     // Read credentials
     $credentials_json = file_get_contents($credentials_path);
     if (!$credentials_json) {
+        if (STS_DEBUG) {
+            echo '</pre>';
+        }
         error_log('STS: Failed to read credentials file');
         return;
     }
     
     $credentials = json_decode($credentials_json, true);
     if (!$credentials) {
+        if (STS_DEBUG) {
+            echo '</pre>';
+        }
         error_log('STS: Failed to decode credentials JSON');
         return;
     }
@@ -148,15 +174,31 @@ function sts_log_to_sheets($first_name, $last_name, $email, $screening_name, $sc
     // Create JWT for authentication
     $jwt = sts_create_jwt($credentials);
     if (!$jwt) {
+        if (STS_DEBUG) {
+            echo "❌ JWT creation failed\n";
+            echo '</pre>';
+        }
         error_log('STS: Failed to create JWT');
         return;
+    }
+    
+    if (STS_DEBUG) {
+        echo "✓ JWT created\n";
     }
     
     // Get access token
     $access_token = sts_get_access_token($jwt);
     if (!$access_token) {
+        if (STS_DEBUG) {
+            echo "❌ Access token failed\n";
+            echo '</pre>';
+        }
         error_log('STS: Failed to obtain access token');
         return;
+    }
+    
+    if (STS_DEBUG) {
+        echo "✓ Access token obtained\n";
     }
     
     // Prepare row data
@@ -169,7 +211,17 @@ function sts_log_to_sheets($first_name, $last_name, $email, $screening_name, $sc
     $result = sts_append_to_sheet(STS_SHEET_ID, STS_SHEET_TAB, $values, $access_token);
     
     if (!$result) {
+        if (STS_DEBUG) {
+            echo "❌ Sheet append failed\n";
+            echo '</pre>';
+        }
         error_log('STS: Failed to append row to Google Sheet');
+        return;
+    }
+    
+    if (STS_DEBUG) {
+        echo "✓ Sheet append succeeded\n";
+        echo '</pre>';
     }
 }
 
@@ -245,7 +297,7 @@ function sts_get_access_token($jwt) {
  */
 function sts_append_to_sheet($sheet_id, $sheet_tab, $values, $access_token) {
     $range = $sheet_tab . '!A:I';
-    $url = 'https://sheets.googleapis.com/v4/spreadsheets/' . urlencode($sheet_id) . '/values/' . urlencode($range) . ':append';
+    $url = 'https://sheets.googleapis.com/v4/spreadsheets/' . urlencode($sheet_id) . '/values/' . urlencode($range) . ':append?valueInputOption=RAW';
     
     $body = json_encode([
         'values' => $values,
