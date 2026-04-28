@@ -1,6 +1,14 @@
 <?php
 
 function sts_get_screenings() {
+    // Try to get screenings from database
+    $saved_screenings = get_option('sts_screenings');
+    
+    if ($saved_screenings && is_array($saved_screenings)) {
+        return $saved_screenings;
+    }
+    
+    // Fallback to hardcoded default screenings
     return [
         'wd' => [
             'name' => 'Where Darkness Dwells',
