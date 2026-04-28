@@ -1,5 +1,10 @@
 <?php
 
+// Google Sheets Configuration
+define('STS_CREDENTIALS_FILE', 'toronto-horror-film-festival-01544b154a0a.json');
+define('STS_SHEET_ID', '15uzyGEO4gvpPwg9alFY_5p06o0McJ6Z1gCcJ3sb8yTI');
+define('STS_SHEET_TAB', 'Sheet1');
+
 function sts_handle_ticket_submission() {
 
     if (!isset($_POST['submit_ticket'])) return;
@@ -117,14 +122,9 @@ function sts_handle_ticket_submission() {
  * Log ticket submission to Google Sheets
  */
 function sts_log_to_sheets($first_name, $last_name, $email, $screening_name, $screening_date, $ticket_type, $num_tickets, $reference_number) {
-    // Configuration
-    $credentials_file = 'toronto-horror-film-festival-01544b154a0a.json';
-    $sheet_id = '15uzyGEO4gvpPwg9alFY_5p06o0McJ6Z1gCcJ3sb8yTI';
-    $sheet_tab = 'Sheet1';
-    
     // Get the plugin/theme directory
     $base_dir = dirname(__FILE__);
-    $credentials_path = $base_dir . '/' . $credentials_file;
+    $credentials_path = $base_dir . '/' . STS_CREDENTIALS_FILE;
     
     // Check if credentials file exists
     if (!file_exists($credentials_path)) {
@@ -166,7 +166,7 @@ function sts_log_to_sheets($first_name, $last_name, $email, $screening_name, $sc
     ];
     
     // Append to sheet
-    $result = sts_append_to_sheet($sheet_id, $sheet_tab, $values, $access_token);
+    $result = sts_append_to_sheet(STS_SHEET_ID, STS_SHEET_TAB, $values, $access_token);
     
     if (!$result) {
         error_log('STS: Failed to append row to Google Sheet');
