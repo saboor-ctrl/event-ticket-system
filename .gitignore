@@ -1,0 +1,14 @@
+# Credentials and configuration
+toronto-horror-film-festival-01544b154a0a.json
+*.json
+.env
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
