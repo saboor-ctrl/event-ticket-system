@@ -21,6 +21,12 @@ function sts_handle_ticket_submission() {
 
     if (!isset($screenings[$screening])) return;
 
+    // Validate reference number for reserved tickets
+    if ($type === 'reserved' && empty($ref)) {
+        echo "<p style='text-align:center;'>❌ Please enter your e-transfer reference number</p>";
+        return;
+    }
+
     $data = $screenings[$screening];
 
     $remaining = get_option("remaining_seats_$screening", 200);
