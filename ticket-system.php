@@ -28,31 +28,6 @@ function sts_set_default_seats() {
 }
 register_activation_hook(__FILE__, 'sts_set_default_seats');
 
-/**
- * Migrate screenings for already-activated plugins
- * Runs on admin_init so it works even if plugin was activated before this code was added
- */
-function sts_migrate_screenings() {
-    if (!current_user_can('manage_options')) {
-        return;
-    }
-
-    // Check if migration has already been done
-    if (get_transient('sts_migration_done')) {
-        return;
-    }
-
-    // Migrate hardcoded screenings to database if not already saved
-    if (!get_option('sts_screenings')) {
-        $screenings = sts_get_screenings();
-        update_option('sts_screenings', $screenings);
-    }
-
-    // Mark migration as done (transient lasts 1 hour)
-    set_transient('sts_migration_done', true, HOUR_IN_SECONDS);
-}
-add_action('admin_init', 'sts_migrate_screenings');
-
 // Register shortcode
 add_shortcode('ticket_form', 'sts_render_ticket_form');
 
@@ -92,6 +67,7 @@ function sts_handle_admin_actions() {
         $new_seats = intval($_POST['remaining_seats']);
         
         update_option("remaining_seats_$key", $new_seats);
+        wp_cache_delete('sts_screenings', 'options');
         
         // Clear sold out flag if seats > 0
         if ($new_seats > 0) {
@@ -172,6 +148,7 @@ function sts_handle_admin_actions() {
             ];
             
             update_option('sts_screenings', $screenings);
+            wp_cache_delete('sts_screenings', 'options');
             update_option("remaining_seats_$key", $initial_seats);
             
             $_GET['sts_message'] = 'added';
