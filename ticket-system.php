@@ -67,7 +67,7 @@ function sts_handle_admin_actions() {
         $new_seats = intval($_POST['remaining_seats']);
         
         update_option("remaining_seats_$key", $new_seats);
-        wp_cache_delete('sts_screenings', 'options');
+        sts_purge_cache();
         
         // Clear sold out flag if seats > 0
         if ($new_seats > 0) {
@@ -87,7 +87,7 @@ function sts_handle_admin_actions() {
         if (isset($screenings[$key])) {
             unset($screenings[$key]);
             update_option('sts_screenings', $screenings);
-            wp_cache_delete('sts_screenings', 'options');
+            sts_purge_cache();
             
             // Clean up seat count and full flag
             delete_option("remaining_seats_$key");
@@ -148,7 +148,7 @@ function sts_handle_admin_actions() {
             ];
             
             update_option('sts_screenings', $screenings);
-            wp_cache_delete('sts_screenings', 'options');
+            sts_purge_cache();
             update_option("remaining_seats_$key", $initial_seats);
             
             $_GET['sts_message'] = 'added';
@@ -157,6 +157,37 @@ function sts_handle_admin_actions() {
 }
 
 add_action('admin_init', 'sts_handle_admin_actions');
+
+/**
+ * Purge all caches (WordPress, Hostinger, WP Rocket, WP Super Cache)
+ */
+function sts_purge_cache() {
+    // WordPress object cache
+    wp_cache_flush();
+    
+    // LiteSpeed - all known purge methods
+    do_action('litespeed_purge_all');
+    do_action('lscwp_purge_all');
+    
+    if (class_exists('LiteSpeed_Cache_API')) {
+        LiteSpeed_Cache_API::purge_all();
+    }
+    
+    if (class_exists('\LiteSpeed\Purge')) {
+        \LiteSpeed\Purge::purge_all();
+    }
+    
+    // Send LiteSpeed purge header by loading the homepage with a purge request
+    wp_remote_request(get_site_url(), [
+        'method' => 'GET',
+        'headers' => [
+            'X-LiteSpeed-Purge' => '*'
+        ],
+        'timeout' => 5,
+        'blocking' => false,
+        'sslverify' => false
+    ]);
+}
 
 /**
  * Render admin page
