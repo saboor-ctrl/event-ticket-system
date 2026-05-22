@@ -2,7 +2,7 @@
 
 // Google Sheets Configuration
 define('STS_CREDENTIALS_FILE', 'toronto-horror-film-festival-01544b154a0a.json');
-define('STS_SHEET_ID', '15uzyGEO4gvpPwg9alFY_5p06o0McJ6Z1gCcJ3sb8yTI');
+define('STS_SHEET_ID', '1PlGZ3z_2nYRMb5Rqliw9_gR25qniI-Z4Z6VhCP-k-Gg');
 define('STS_SHEET_TAB', 'Sheet1');
 
 function sts_handle_ticket_submission() {
